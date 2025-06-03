@@ -1,50 +1,67 @@
-'use client';
+"use client";
 import * as React from "react";
-import { Stepper, Step, StepLabel, StepContent } from "@mui/material";
+import { useSelector, useDispatch } from "react-redux";
+import { Stepper, Step, StepLabel, StepContent, Button } from "@mui/material";
 import CompanyInfoStep from "./CompanyInfoStep";
 import ApplicantInfoStep from "./ApplicantInfoStep";
 import UploadDocumentsStep from "./UploadDocumentsStep";
 import TermsAndConditionsStep from "./TermsAndConditionsStep";
+import { steps } from "@/lib/constants";
+import { StepperFormDiv } from "./index.styles";
+import {nextStep, prevStep, submitForm} from "@/store/stepperFormSlice";
+import { RootState } from "@/store";
+import { useRouter } from "next/navigation";
 
-export default function StepperForm(){
-    const [activeStep, setActiveStep] = React.useState(1);
+export default function StepperForm() {
+  const dispatch = useDispatch();
+  const router = useRouter();
+  const activeStep = useSelector((state: RootState) => state.stepperForm.step);
 
-    const handleNext = () => {
-        setActiveStep((prevActiveStep) => prevActiveStep + 1);
-    };
+  const handleNext = () => {
+    dispatch(nextStep());
+  };
 
-    const handleBack = () => {
-        setActiveStep((prevActiveStep) => prevActiveStep - 1);
-    };
+  const handleBack = () => {
+    prevStep();
+  };
 
-    const handleReset = () => {
-        setActiveStep(0);
-    };
+  const resetStep = React.useCallback((step:number) => {
+    resetStep(step);
+  },[activeStep]);
 
-    return <Stepper activeStep={activeStep} orientation="vertical">
-        <Step expanded>
-            <StepLabel>Company Information</StepLabel>
-            <StepContent>
-                <CompanyInfoStep/>
-            </StepContent>
-        </Step>
-        <Step expanded>
-            <StepLabel>Applicant Information</StepLabel>
-            <StepContent>
-            <ApplicantInfoStep/>
-            </StepContent>
-        </Step>
-        <Step expanded>
-            <StepLabel>Upload Documents</StepLabel>
-            <StepContent>
-                <UploadDocumentsStep/>
-            </StepContent>
-        </Step>
-        <Step expanded>
-            <StepLabel>Terms & Conditions</StepLabel>
-            <StepContent>
-                <TermsAndConditionsStep/>
-            </StepContent>
-        </Step>
-    </Stepper>
+  const renderStep = (index: number) => {
+    switch (index) {
+      case 0:
+        return <CompanyInfoStep onNext={handleNext} resetStep={() => resetStep(0)} />;
+      case 1:
+        return <ApplicantInfoStep onNext={handleNext} resetStep={() => resetStep(1)} onBack={handleBack} isDisabled={activeStep < index} />;
+      case 2:
+        return <UploadDocumentsStep onNext={handleNext} resetStep={() => resetStep(2)} onBack={handleBack} isDisabled={activeStep < index} />;
+      case 3:
+        return (
+          <TermsAndConditionsStep onBack={handleBack} resetStep={() => resetStep(3)} onNext={handleNext} isDisabled={activeStep < index} />
+        );
+      default:
+        return null;
+    }
+  };
+
+  const handleSubmit = () => {
+    dispatch(submitForm());
+    router.push("/list");
+  };
+
+  return (
+    <StepperFormDiv>
+      <Stepper activeStep={activeStep} orientation="vertical">
+        {steps.map((label: string, index: number) => (
+          <Step expanded className="stepDiv">
+            <StepLabel className="stepLabelDiv">{label}</StepLabel>
+            <StepContent className="stepContentDiv">{renderStep(index)}</StepContent>
+          </Step>
+        ))}
+      </Stepper>
+      <Button onClick={handleSubmit} disabled={activeStep !== 3} variant="contained" className="submitBtn">Submit</Button>
+    </StepperFormDiv>
+  );
 }

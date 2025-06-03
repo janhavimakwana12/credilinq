@@ -56,13 +56,6 @@ const StyledLi = styled('li')({
   },
 });
 
-const StyledUl = styled('ul')({
-  listStyle: 'disc',
-  paddingLeft: '2.5em',
-  marginTop: '0.5em',
-});
-
-
 export default function TermsAndConditionsPage() {
   return (
     <div>
@@ -100,7 +93,6 @@ export default function TermsAndConditionsPage() {
           </li>
         </ol>
       </StyledLi>
-
       <StyledLi>
       The Personal and Business Data We Collect From You
       <ol>
